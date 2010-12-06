@@ -1,6 +1,24 @@
 require File.expand_path('../boot', __FILE__)
 
-require 'rails/all'
+#require 'rails/all'
+
+require "action_controller/railtie"
+require "action_mailer/railtie"
+require "active_resource/railtie"
+require "rails/test_unit/railtie"
+require 'neo4j'
+require 'devise-neo4j'
+#require 'devise-neo4j/devise/orm/neo4j'
+
+# this should be included in the devise-neo4j gem, we do it here instead:
+module Neo4j
+  module Rails
+    class Model
+      extend ::Devise::Models
+      extend ::Devise::Orm::Neo4j::Hook
+    end
+  end
+end
 
 # If you have a Gemfile, require the gems listed there, including any gems
 # you've limited to :test, :development, or :production.
@@ -38,5 +56,15 @@ module DeviseExample
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
+
+    # Enable Neo4j generators, e.g:  rails generate model Admin --parent User
+    config.generators do |g|
+      g.orm             :neo4j
+      g.test_framework  :rspec, :fixture => false
+    end
+
+    # Configure where the neo4j database should exist
+    config.neo4j.storage_path = "#{config.root}/db/neo4j-#{Rails.env}"
+    
   end
 end
